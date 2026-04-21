@@ -380,6 +380,12 @@
     align-items: end;
   }
 
+  @media (max-width: 800px) {
+    .add-user-fields {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .add-user-fields .field { margin-bottom: 0; }
 
   .btn-add {
@@ -706,8 +712,8 @@ async function renderAdmin() {
       <h3>담당자 추가</h3>
       <div class="add-user-fields">
         <div class="field"><label>이름</label><input id="new-name" placeholder="홍길동"></div>
-        <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="hong@example.com"></div>
-        <div class="field"><label>폴더명 (영문)</label><input id="new-folder" placeholder="hong"></div>
+        <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="홍길동@thebada.com"></div>
+        <div class="field"><label>비밀번호</label><input id="new-pw" type="password" placeholder="비밀번호 (6자 이상)"></div>
         <button class="btn-add" onclick="addUser()">추가</button>
       </div>
     </div>
@@ -744,28 +750,28 @@ async function loadAdminFiles(tab) {
 }
 
 async function addUser() {
-  const name   = document.getElementById('new-name').value.trim();
-  const email  = document.getElementById('new-email').value.trim();
-  const folder = document.getElementById('new-folder').value.trim().toLowerCase().replace(/\s/g,'');
-  if (!name || !email || !folder) return toast('모든 항목을 입력하세요', 'error');
+  const name  = document.getElementById('new-name').value.trim();
+  const email = document.getElementById('new-email').value.trim();
+  const pw    = document.getElementById('new-pw').value.trim();
+  if (!name || !email || !pw) return toast('모든 항목을 입력하세요', 'error');
+  if (pw.length < 6) return toast('비밀번호는 6자 이상이어야 합니다', 'error');
 
-  // Supabase Auth 계정 생성 (임시 비밀번호: 이름+1234)
-  const tempPw = folder + '1234!';
-  const { data: authData, error: authErr } = await sb.auth.admin.createUser({
-    email, password: tempPw, email_confirm: true
-  });
+  // 폴더명 자동 생성 (이름 + 랜덤 4자리)
+  const folder = name + '_' + Math.random().toString(36).slice(2, 6);
 
-  if (authErr) {
-    // auth 없이 profiles만 추가 (관리자가 직접 비밀번호 설정)
+  // Supabase Auth 계정 생성
+  const { error: signUpErr } = await sb.auth.signUp({ email, password: pw });
+  if (signUpErr && !signUpErr.message.includes('already registered')) {
+    return toast('계정 생성 실패: ' + signUpErr.message, 'error');
   }
 
   const { error } = await sb.from('profiles').insert({ email, name, role:'user', folder_name: folder });
   if (error) return toast('추가 실패: ' + error.message, 'error');
 
-  toast(`${name} 추가 완료! 임시 비밀번호: ${tempPw}`);
+  toast(`${name} 추가 완료!`);
   document.getElementById('new-name').value = '';
   document.getElementById('new-email').value = '';
-  document.getElementById('new-folder').value = '';
+  document.getElementById('new-pw').value = '';
   await loadUsers();
 }
 
