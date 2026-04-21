@@ -756,8 +756,9 @@ async function addUser() {
   if (!name || !email || !pw) return toast('모든 항목을 입력하세요', 'error');
   if (pw.length < 6) return toast('비밀번호는 6자 이상이어야 합니다', 'error');
 
-  // 폴더명 자동 생성 (이름 + 랜덤 4자리)
-  const folder = name + '_' + Math.random().toString(36).slice(2, 6);
+  // 폴더명 자동 생성 (이메일 앞부분 영문+숫자만 사용)
+  const safeName = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') || 'user';
+  const folder = safeName + '_' + Math.random().toString(36).slice(2, 6);
 
   // Supabase Auth 계정 생성
   const { error: signUpErr } = await sb.auth.signUp({ email, password: pw });
