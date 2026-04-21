@@ -3,489 +3,193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>서류 보관함</title>
+<title>서류대행 영수증 정산</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --accent: #4f8eff;
-    --accent2: #7c5cfc;
-    --text: #e8eaf0;
-    --text2: #8b90a7;
-    --border: #2e3350;
-    --danger: #ff4f6a;
-    --success: #2ecc8f;
-    --radius: 12px;
-  }
+:root {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --surface2: #f0f0eb;
+  --accent: #1a1a2e;
+  --green: #2ecc71;
+  --green-bg: #eafaf1;
+  --red: #e74c3c;
+  --blue: #3498db;
+  --blue-bg: #ebf5fb;
+  --text: #1a1a2e;
+  --text2: #7f8c8d;
+  --border: #e0e0d8;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
+body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* ── 로그인 화면 ── */
-  #login-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: radial-gradient(ellipse at 60% 30%, #1a2240 0%, #0f1117 70%);
-  }
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
 
-  .login-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 48px 40px;
-    width: 100%;
-    max-width: 400px;
-  }
+.login-box { background: #fff; border-radius: 24px; padding: 52px 44px; width: 100%; max-width: 420px; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
+.login-logo { font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+.login-box h1 { font-size: 26px; font-weight: 700; margin-bottom: 32px; color: var(--accent); }
 
-  .login-box h1 {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
-  }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
+.field input, .field select, .field textarea { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 13px 16px; color: var(--text); font-size: 15px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+.field input:focus, .field select:focus { border-color: var(--accent); background: #fff; }
 
-  .login-box p {
-    color: var(--text2);
-    font-size: 14px;
-    margin-bottom: 36px;
-  }
+.btn-login { width: 100%; padding: 15px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; background: var(--accent); color: #fff; margin-top: 8px; transition: opacity 0.2s; }
+.btn-login:hover { opacity: 0.88; }
+.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .field { margin-bottom: 16px; }
+.error-msg { background: #fdf2f2; border: 1px solid #f5c6c6; border-radius: 8px; color: var(--red); font-size: 13px; padding: 12px 14px; margin-top: 12px; display: none; }
 
-  .field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text2);
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
+#app { display: none; min-height: 100vh; }
 
-  .field input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    color: var(--text);
-    font-size: 15px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s;
-  }
+.header { background: var(--accent); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header-left { display: flex; align-items: center; gap: 14px; }
+.header h2 { font-size: 15px; font-weight: 700; color: #fff; }
+.role-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.role-admin { background: rgba(255,255,255,0.2); color: #fff; }
+.role-user { background: rgba(46,204,113,0.3); color: #2ecc71; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-name { font-size: 13px; color: rgba(255,255,255,0.7); }
+.btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 13px; font-family: inherit; padding: 6px 14px; cursor: pointer; transition: background 0.2s; }
+.btn-logout:hover { background: rgba(255,255,255,0.2); }
 
-  .field input:focus { border-color: var(--accent); }
+.container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
 
-  .btn {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-  }
+.card { background: var(--surface); border-radius: 20px; padding: 28px 32px; box-shadow: var(--shadow); margin-bottom: 24px; }
+.card h3 { font-size: 17px; font-weight: 700; margin-bottom: 20px; color: var(--accent); }
 
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; margin-bottom: 20px; background: var(--surface2); }
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: var(--blue-bg); }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-zone-icon { font-size: 36px; margin-bottom: 12px; }
+.upload-zone h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.upload-zone p { font-size: 13px; color: var(--text2); }
 
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff;
-    margin-top: 8px;
-  }
+.preview-imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.preview-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 2px solid var(--border); }
 
-  .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.amount-wrap { position: relative; }
+.amount-wrap input { padding-right: 36px; }
+.amount-unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text2); }
 
-  .error-msg {
-    background: rgba(255,79,106,0.12);
-    border: 1px solid rgba(255,79,106,0.3);
-    border-radius: 8px;
-    color: var(--danger);
-    font-size: 13px;
-    padding: 12px 14px;
-    margin-top: 14px;
-    display: none;
-  }
+.btn-upload { width: 100%; padding: 15px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; background: var(--accent); color: #fff; transition: opacity 0.2s; }
+.btn-upload:hover { opacity: 0.85; }
+.btn-upload:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* ── 메인 앱 ── */
-  #app { display: none; min-height: 100vh; }
+.progress-wrap { background: var(--surface2); border-radius: 4px; height: 4px; margin-bottom: 16px; overflow: hidden; display: none; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #2ecc71, #27ae60); border-radius: 4px; transition: width 0.3s; width: 0%; }
 
-  /* 헤더 */
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.card-header h3 { margin-bottom: 0; }
+.total-badge { font-size: 18px; font-weight: 700; color: var(--green); }
 
-  .header-left { display: flex; align-items: center; gap: 12px; }
+.file-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: var(--surface2); transition: border-color 0.2s; }
+.file-item:hover { border-color: var(--accent); }
+.file-thumb { width: 52px; height: 52px; border-radius: 8px; background: var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-amount { font-size: 15px; font-weight: 700; color: var(--green); }
+.file-memo { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.file-date { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.file-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
-  .header h2 {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
+.btn-sm { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-size: 12px; font-family: inherit; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm-del:hover { border-color: var(--red); color: var(--red); }
 
-  .role-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
-  }
+.empty-state { text-align: center; padding: 40px 0; color: var(--text2); font-size: 14px; }
 
-  .role-admin { background: rgba(124,92,252,0.2); color: #a78bfa; }
-  .role-user  { background: rgba(79,142,255,0.2); color: #7ab3ff; }
+.admin-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.summary-card { background: var(--surface); border-radius: 16px; padding: 22px 24px; box-shadow: var(--shadow); }
+.summary-card .s-label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.summary-card .s-value { font-size: 26px; font-weight: 700; color: var(--accent); }
+.summary-card .s-value.green { color: var(--green); }
 
-  .btn-logout {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text2);
-    font-size: 13px;
-    font-family: inherit;
-    padding: 7px 14px;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
+.region-section { margin-bottom: 28px; }
+.region-title { font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+.region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 
-  .btn-logout:hover { color: var(--danger); }
+.user-card { background: var(--surface); border-radius: 14px; padding: 18px 16px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; position: relative; }
+.user-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.user-card.has-files { border-color: var(--green); background: var(--green-bg); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); position: absolute; top: 14px; right: 14px; }
+.status-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(46,204,113,0.5); }
+.user-card-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.user-card-count { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+.user-card-amount { font-size: 14px; font-weight: 700; color: var(--green); }
+.user-card-amount.zero { color: var(--text2); font-weight: 400; font-size: 12px; }
 
-  /* 콘텐츠 */
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 32px 20px;
-  }
+.detail-panel { background: var(--surface); border-radius: 20px; padding: 28px 32px; box-shadow: var(--shadow); margin-top: 24px; display: none; }
+.detail-panel.show { display: block; }
+.detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.detail-header h3 { font-size: 18px; font-weight: 700; }
+.detail-total { font-size: 22px; font-weight: 700; color: var(--green); }
+.detail-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.btn-action { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; font-weight: 600; font-family: inherit; padding: 9px 18px; cursor: pointer; transition: all 0.2s; }
+.btn-action:hover { border-color: var(--accent); color: var(--accent); }
+.btn-action.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-action.primary:hover { opacity: 0.85; }
 
-  /* 섹션 타이틀 */
-  .section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text2);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-  }
+.add-user-panel { background: var(--surface); border-radius: 20px; padding: 24px 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
+.add-user-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.add-user-fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+.btn-add { background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 700; font-family: inherit; padding: 13px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+.btn-add:hover { opacity: 0.85; }
 
-  /* 업로드 영역 */
-  .upload-area {
-    border: 2px dashed var(--border);
-    border-radius: 16px;
-    padding: 48px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    margin-bottom: 32px;
-    position: relative;
-  }
+#toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); border-radius: 12px; padding: 13px 22px; font-size: 14px; font-weight: 600; color: #fff; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.error { background: var(--red); }
+#toast.success { background: var(--green); }
 
-  .upload-area:hover, .upload-area.drag-over {
-    border-color: var(--accent);
-    background: rgba(79,142,255,0.05);
-  }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  .upload-area input[type=file] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-  }
-
-  .upload-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--surface2);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    font-size: 22px;
-  }
-
-  .upload-area h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-
-  .upload-area p {
-    font-size: 13px;
-    color: var(--text2);
-  }
-
-  /* 진행바 */
-  .progress-wrap {
-    background: var(--surface2);
-    border-radius: 4px;
-    height: 4px;
-    margin-top: 20px;
-    overflow: hidden;
-    display: none;
-  }
-
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 4px;
-    transition: width 0.3s;
-    width: 0%;
-  }
-
-  /* 파일 목록 */
-  .files-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .file-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: border-color 0.2s;
-  }
-
-  .file-card:hover { border-color: var(--accent); }
-
-  .file-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--surface2);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  .file-info { flex: 1; min-width: 0; }
-
-  .file-name {
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .file-meta {
-    font-size: 12px;
-    color: var(--text2);
-    margin-top: 3px;
-  }
-
-  .file-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-  .btn-icon {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text2);
-    font-size: 13px;
-    font-family: inherit;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-    white-space: nowrap;
-  }
-
-  .btn-icon:hover { color: var(--accent); border-color: var(--accent); }
-  .btn-del:hover  { color: var(--danger); border-color: var(--danger); }
-
-  .empty-state {
-    text-align: center;
-    padding: 48px 0;
-    color: var(--text2);
-    font-size: 14px;
-  }
-
-  /* 관리자 - 담당자 목록 */
-  .user-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-
-  .tab {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text2);
-    font-size: 13px;
-    font-weight: 500;
-    font-family: inherit;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .tab.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-
-  /* 관리자 - 담당자 추가 */
-  .add-user-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 32px;
-  }
-
-  .add-user-box h3 {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-
-  .add-user-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: 10px;
-    align-items: end;
-  }
-
-  @media (max-width: 800px) {
-    .add-user-fields {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .add-user-fields .field { margin-bottom: 0; }
-
-  .btn-add {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border: none;
-    border-radius: var(--radius);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
-    padding: 14px 20px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.2s;
-  }
-
-  .btn-add:hover { opacity: 0.85; }
-
-  /* 토스트 */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 14px;
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 999;
-    white-space: nowrap;
-  }
-
-  #toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  #toast.success { border-color: var(--success); color: var(--success); }
-  #toast.error   { border-color: var(--danger);  color: var(--danger);  }
-
-  /* 로딩 */
-  .spinner {
-    display: inline-block;
-    width: 16px; height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* 반응형 */
-  @media (max-width: 600px) {
-    .add-user-fields {
-      grid-template-columns: 1fr;
-    }
-    .login-box { padding: 36px 24px; }
-    .file-actions .btn-icon span { display: none; }
-  }
+@media (max-width: 768px) {
+  .admin-summary { grid-template-columns: 1fr 1fr; }
+  .add-user-fields { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .login-box { padding: 36px 24px; }
+}
+@media (max-width: 480px) {
+  .admin-summary { grid-template-columns: 1fr; }
+  .add-user-fields { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-<!-- 로그인 -->
 <div id="login-screen">
   <div class="login-box">
-    <h1>서류 보관함</h1>
-    <p>담당자 이메일로 로그인하세요</p>
-    <div class="field">
-      <label>이메일</label>
-      <input type="email" id="login-email" placeholder="email@example.com">
-    </div>
-    <div class="field">
-      <label>비밀번호</label>
-      <input type="password" id="login-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-logo">더바다</div>
+    <h1>서류대행 영수증 정산</h1>
+    <div class="field"><label>이메일</label><input type="email" id="login-email" placeholder="email@thebada.com"></div>
+    <div class="field"><label>비밀번호</label><input type="password" id="login-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-login" id="login-btn" onclick="doLogin()">로그인</button>
     <div class="error-msg" id="login-error"></div>
   </div>
 </div>
 
-<!-- 메인 앱 -->
 <div id="app">
   <div class="header">
     <div class="header-left">
-      <h2>서류 보관함</h2>
+      <h2>서류대행 영수증 정산</h2>
       <span class="role-badge" id="role-badge"></span>
     </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <span style="font-size:13px;color:var(--text2)" id="user-name-label"></span>
+    <div class="header-right">
+      <span class="header-name" id="user-name-label"></span>
       <button class="btn-logout" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
-
   <div class="container" id="main-content"></div>
 </div>
 
@@ -497,91 +201,61 @@ const SUPABASE_KEY = 'sb_publishable_XX_4hSo69x8MpCcK6k7TsQ_mZtJq3q6';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
-let currentProfile = null;
-let adminTab = null;
+let currentUser = null, currentProfile = null, selectedFiles = [];
+const REGIONS = ['서울', '경기도', '인천'];
 
-// ── 유틸 ──
-function toast(msg, type='success') {
+function toast(msg, type = 'success') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show ' + type;
+  t.textContent = msg; t.className = 'show ' + type;
   setTimeout(() => t.className = '', 2800);
 }
 
-function formatSize(bytes) {
-  if (!bytes) return '-';
-  if (bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
-  return (bytes/1024/1024).toFixed(1) + ' MB';
-}
-
+function formatMoney(n) { return n ? Number(n).toLocaleString('ko-KR') + '원' : '0원'; }
 function formatDate(str) {
   const d = new Date(str);
-  return d.toLocaleDateString('ko-KR') + ' ' + d.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }) + ' ' +
+    d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 }
-
 function fileEmoji(name) {
-  const ext = name.split('.').pop().toLowerCase();
-  if (['jpg','jpeg','png','gif','webp','heic'].includes(ext)) return '🖼️';
-  if (ext === 'pdf') return '📄';
-  if (['doc','docx'].includes(ext)) return '📝';
-  if (['xls','xlsx'].includes(ext)) return '📊';
-  return '📎';
+  const ext = (name||'').split('.').pop().toLowerCase();
+  return ['jpg','jpeg','png','gif','webp','heic'].includes(ext) ? '🖼️' : ext === 'pdf' ? '📄' : '📎';
 }
 
-// 이미지 압축
 async function compressImage(file) {
   if (!file.type.startsWith('image/')) return file;
   return new Promise(resolve => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
+    const img = new Image(), url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 1200;
-      let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) {
-        if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
-        else { w = Math.round(w*MAX/h); h = MAX; }
-      }
+      const MAX = 1400; let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h*MAX/w); w = MAX; } else { w = Math.round(w*MAX/h); h = MAX; } }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      canvas.toBlob(blob => {
-        URL.revokeObjectURL(url);
-        resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {type:'image/jpeg'}));
-      }, 'image/jpeg', 0.82);
+      canvas.toBlob(blob => { URL.revokeObjectURL(url); resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {type:'image/jpeg'})); }, 'image/jpeg', 0.85);
     };
     img.src = url;
   });
 }
 
-// ── 로그인/로그아웃 ──
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  const btn   = document.getElementById('login-btn');
-  const err   = document.getElementById('login-error');
-  err.style.display = 'none';
-  btn.disabled = true;
+  const pw = document.getElementById('login-pw').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  err.style.display = 'none'; btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>로그인 중...';
-
   try {
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
     if (error) throw error;
     currentUser = data.user;
-    await loadProfile();
-    showApp();
+    await loadProfile(); showApp();
   } catch(e) {
-    err.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
-    err.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '로그인';
-  }
+    err.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.'; err.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = '로그인'; }
 }
 
 async function doLogout() {
-  await sb.auth.signOut();
-  currentUser = null; currentProfile = null;
+  await sb.auth.signOut(); currentUser = null; currentProfile = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
 }
@@ -597,193 +271,255 @@ function showApp() {
   document.getElementById('user-name-label').textContent = currentProfile.name;
   const badge = document.getElementById('role-badge');
   if (currentProfile.role === 'admin') {
-    badge.textContent = '관리자'; badge.className = 'role-badge role-admin';
-    renderAdmin();
+    badge.textContent = '관리자'; badge.className = 'role-badge role-admin'; renderAdmin();
   } else {
-    badge.textContent = '담당자'; badge.className = 'role-badge role-user';
-    renderUser();
+    badge.textContent = '담당자'; badge.className = 'role-badge role-user'; renderUser();
   }
 }
 
 // ── 담당자 화면 ──
 async function renderUser() {
-  const c = document.getElementById('main-content');
-  c.innerHTML = `
-    <p class="section-title">내 서류 업로드</p>
-    <div class="upload-area" id="upload-area">
-      <input type="file" id="file-input" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
-      <div class="upload-icon">📁</div>
-      <h3>파일을 여기 끌어다 놓거나 탭하여 선택</h3>
-      <p>사진, PDF, 문서 등 지원 · 이미지는 자동 압축됩니다</p>
-      <div class="progress-wrap" id="progress-wrap">
-        <div class="progress-bar" id="progress-bar"></div>
+  document.getElementById('main-content').innerHTML = `
+    <div class="card">
+      <h3>영수증 업로드</h3>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" multiple accept="image/*,.pdf">
+        <div class="upload-zone-icon">📸</div>
+        <h4>영수증 사진을 선택하거나 끌어다 놓으세요</h4>
+        <p>이미지는 자동 압축됩니다</p>
       </div>
+      <div class="preview-imgs" id="preview-imgs"></div>
+      <div class="form-row">
+        <div class="field"><label>금액</label>
+          <div class="amount-wrap"><input type="number" id="amount-input" placeholder="0" min="0"><span class="amount-unit">원</span></div>
+        </div>
+        <div class="field"><label>특이사항 (선택)</label><input type="text" id="memo-input" placeholder="예: 주차비, 식대 등"></div>
+      </div>
+      <div class="progress-wrap" id="pw"><div class="progress-bar" id="pb"></div></div>
+      <button class="btn-upload" id="upload-btn" onclick="doUpload()">업로드</button>
     </div>
-    <p class="section-title">업로드된 서류</p>
-    <div class="files-grid" id="files-grid"></div>
+    <div class="card">
+      <div class="card-header">
+        <h3>내 업로드 내역</h3>
+        <div class="total-badge" id="my-total">합계: 0원</div>
+      </div>
+      <div id="my-files-list"></div>
+    </div>
   `;
-
-  document.getElementById('file-input').addEventListener('change', e => uploadFiles(e.target.files));
-  const ua = document.getElementById('upload-area');
-  ua.addEventListener('dragover', e => { e.preventDefault(); ua.classList.add('drag-over'); });
-  ua.addEventListener('dragleave', () => ua.classList.remove('drag-over'));
-  ua.addEventListener('drop', e => { e.preventDefault(); ua.classList.remove('drag-over'); uploadFiles(e.dataTransfer.files); });
-
-  await loadUserFiles(currentProfile.folder_name);
+  document.getElementById('file-input').addEventListener('change', e => handleFileSelect(e.target.files));
+  const uz = document.getElementById('upload-zone');
+  uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
+  uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
+  uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag-over'); handleFileSelect(e.dataTransfer.files); });
+  await loadMyFiles();
 }
 
-async function uploadFiles(fileList) {
-  const pw = document.getElementById('progress-wrap');
-  const pb = document.getElementById('progress-bar');
-  pw.style.display = 'block'; pb.style.width = '0%';
+function handleFileSelect(files) {
+  selectedFiles = Array.from(files);
+  const preview = document.getElementById('preview-imgs');
+  preview.innerHTML = '';
+  selectedFiles.forEach(f => {
+    if (f.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.className = 'preview-img'; img.src = URL.createObjectURL(f); preview.appendChild(img);
+    }
+  });
+}
 
+async function doUpload() {
+  if (!selectedFiles.length) return toast('파일을 선택해주세요', 'error');
+  const amount = parseInt(document.getElementById('amount-input').value) || 0;
+  const memo = document.getElementById('memo-input').value.trim();
+  const btn = document.getElementById('upload-btn');
+  const pw = document.getElementById('pw'), pb = document.getElementById('pb');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>업로드 중...';
+  pw.style.display = 'block';
   let done = 0;
-  for (let raw of fileList) {
+  for (let raw of selectedFiles) {
     const file = await compressImage(raw);
-    const path = `${currentProfile.folder_name}/${Date.now()}_${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${currentProfile.folder_name}/${Date.now()}_${safeName}`;
     const { error } = await sb.storage.from('files').upload(path, file);
     if (!error) {
-      await sb.from('files').insert({
-        user_id: currentProfile.id,
-        file_name: file.name,
-        file_path: path,
-        file_size: file.size
-      });
+      await sb.from('files').insert({ user_id: currentProfile.id, file_name: file.name, file_path: path, file_size: file.size, amount, memo });
     }
-    done++;
-    pb.style.width = (done / fileList.length * 100) + '%';
+    done++; pb.style.width = (done / selectedFiles.length * 100) + '%';
   }
-
-  setTimeout(() => { pw.style.display = 'none'; }, 600);
-  toast('업로드 완료!');
-  await loadUserFiles(currentProfile.folder_name);
+  setTimeout(() => { pw.style.display = 'none'; pb.style.width = '0%'; }, 600);
+  btn.disabled = false; btn.textContent = '업로드';
+  selectedFiles = [];
+  document.getElementById('preview-imgs').innerHTML = '';
+  document.getElementById('amount-input').value = '';
+  document.getElementById('memo-input').value = '';
+  toast('업로드 완료!'); await loadMyFiles();
 }
 
-async function loadUserFiles(folder) {
+async function loadMyFiles() {
   const { data } = await sb.from('files').select('*').eq('user_id', currentProfile.id).order('uploaded_at', {ascending:false});
-  renderFiles(data || [], 'files-grid', false);
-}
-
-function renderFiles(files, gridId, isAdmin) {
-  const grid = document.getElementById(gridId);
-  if (!files.length) {
-    grid.innerHTML = '<div class="empty-state">업로드된 서류가 없습니다</div>';
-    return;
-  }
-  grid.innerHTML = files.map(f => `
-    <div class="file-card">
-      <div class="file-icon">${fileEmoji(f.file_name)}</div>
+  const files = data || [];
+  const total = files.reduce((s, f) => s + (f.amount||0), 0);
+  document.getElementById('my-total').textContent = '합계: ' + formatMoney(total);
+  const list = document.getElementById('my-files-list');
+  if (!files.length) { list.innerHTML = '<div class="empty-state">업로드된 영수증이 없습니다</div>'; return; }
+  list.innerHTML = files.map(f => `
+    <div class="file-item">
+      <div class="file-thumb">${fileEmoji(f.file_name)}</div>
       <div class="file-info">
         <div class="file-name">${f.file_name}</div>
-        <div class="file-meta">${formatSize(f.file_size)} · ${formatDate(f.uploaded_at)}</div>
+        <div class="file-amount">${formatMoney(f.amount)}</div>
+        ${f.memo ? `<div class="file-memo">${f.memo}</div>` : ''}
+        <div class="file-date">${formatDate(f.uploaded_at)}</div>
       </div>
       <div class="file-actions">
-        <button class="btn-icon" onclick="downloadFile('${f.file_path}','${f.file_name}')">⬇ <span>다운로드</span></button>
-        ${isAdmin ? '' : `<button class="btn-icon btn-del" onclick="deleteFile('${f.id}','${f.file_path}','${gridId}',${isAdmin})">✕</button>`}
+        <button class="btn-sm" onclick="downloadFile('${f.file_path}','${f.file_name}')">다운로드</button>
+        <button class="btn-sm btn-sm-del" onclick="deleteMyFile('${f.id}','${f.file_path}')">삭제</button>
       </div>
     </div>
   `).join('');
+}
+
+async function deleteMyFile(id, path) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  await sb.storage.from('files').remove([path]);
+  await sb.from('files').delete().eq('id', id);
+  toast('삭제되었습니다'); await loadMyFiles();
+}
+
+// ── 관리자 화면 ──
+async function renderAdmin() {
+  document.getElementById('main-content').innerHTML = `
+    <div id="summary-area"></div>
+    <div class="add-user-panel">
+      <h3>담당자 추가</h3>
+      <div class="add-user-fields">
+        <div class="field"><label>이름</label><input id="new-name" placeholder="홍길동"></div>
+        <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="hong@thebada.com"></div>
+        <div class="field"><label>비밀번호</label><input id="new-pw" type="password" placeholder="6자 이상"></div>
+        <div class="field"><label>지역</label><select id="new-region"><option>서울</option><option>경기도</option><option>인천</option></select></div>
+        <button class="btn-add" onclick="addUser()">추가</button>
+      </div>
+    </div>
+    <div id="regions-area"></div>
+    <div class="detail-panel" id="detail-panel"></div>
+  `;
+  await loadAdminData();
+}
+
+async function loadAdminData() {
+  const { data: users } = await sb.from('profiles').select('*').eq('role','user').order('name');
+  const { data: files } = await sb.from('files').select('*');
+  const userFiles = {};
+  (files||[]).forEach(f => { if (!userFiles[f.user_id]) userFiles[f.user_id] = []; userFiles[f.user_id].push(f); });
+  const totalAmount = (files||[]).reduce((s,f) => s+(f.amount||0), 0);
+  const submittedCount = (users||[]).filter(u => (userFiles[u.id]||[]).length > 0).length;
+
+  document.getElementById('summary-area').innerHTML = `
+    <div class="admin-summary">
+      <div class="summary-card"><div class="s-label">전체 담당자</div><div class="s-value">${(users||[]).length}명</div></div>
+      <div class="summary-card"><div class="s-label">제출 완료</div><div class="s-value green">${submittedCount}명</div></div>
+      <div class="summary-card"><div class="s-label">총 경비 합계</div><div class="s-value green">${formatMoney(totalAmount)}</div></div>
+    </div>
+  `;
+
+  document.getElementById('regions-area').innerHTML = REGIONS.map(region => {
+    const regionUsers = (users||[]).filter(u => (u.region||'서울') === region);
+    if (!regionUsers.length) return '';
+    return `
+      <div class="region-section">
+        <div class="region-title">📍 ${region} <span style="font-weight:400;font-size:11px">${regionUsers.length}명</span></div>
+        <div class="region-grid">
+          ${regionUsers.map(u => {
+            const uFiles = userFiles[u.id] || [];
+            const uTotal = uFiles.reduce((s,f) => s+(f.amount||0), 0);
+            const has = uFiles.length > 0;
+            return `
+              <div class="user-card ${has?'has-files':''}" onclick="showUserDetail('${u.id}','${u.name}')">
+                <div class="status-dot ${has?'green':''}"></div>
+                <div class="user-card-name">${u.name}</div>
+                <div class="user-card-count">${uFiles.length}건</div>
+                <div class="user-card-amount ${!uTotal?'zero':''}">${uTotal ? formatMoney(uTotal) : '미제출'}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function showUserDetail(userId, userName) {
+  const { data: files } = await sb.from('files').select('*').eq('user_id', userId).order('uploaded_at', {ascending:false});
+  const total = (files||[]).reduce((s,f) => s+(f.amount||0), 0);
+  const panel = document.getElementById('detail-panel');
+  panel.className = 'detail-panel show';
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div><h3>${userName} 담당자</h3><div style="font-size:13px;color:var(--text2);margin-top:4px">${(files||[]).length}건 업로드</div></div>
+      <div class="detail-total">${formatMoney(total)}</div>
+    </div>
+    <div class="detail-actions">
+      <button class="btn-action primary" onclick="downloadAll('${userId}','${userName}')">전체 다운로드</button>
+      <button class="btn-action" onclick="document.getElementById('detail-panel').className='detail-panel'">닫기</button>
+    </div>
+    ${!(files||[]).length ? '<div class="empty-state">업로드된 영수증이 없습니다</div>' :
+      (files||[]).map(f => `
+        <div class="file-item">
+          <div class="file-thumb">${fileEmoji(f.file_name)}</div>
+          <div class="file-info">
+            <div class="file-name">${f.file_name}</div>
+            <div class="file-amount">${formatMoney(f.amount)}</div>
+            ${f.memo ? `<div class="file-memo">${f.memo}</div>` : ''}
+            <div class="file-date">${formatDate(f.uploaded_at)}</div>
+          </div>
+          <div class="file-actions">
+            <button class="btn-sm" onclick="downloadFile('${f.file_path}','${f.file_name}')">다운로드</button>
+          </div>
+        </div>
+      `).join('')}
+  `;
+  panel.scrollIntoView({ behavior: 'smooth' });
 }
 
 async function downloadFile(path, name) {
   const { data } = await sb.storage.from('files').download(path);
   if (!data) return toast('다운로드 실패', 'error');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(data);
-  a.download = name;
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(data); a.download = name; a.click();
 }
 
-async function deleteFile(id, path, gridId, isAdmin) {
-  if (!confirm('삭제하시겠습니까?')) return;
-  await sb.storage.from('files').remove([path]);
-  await sb.from('files').delete().eq('id', id);
-  toast('삭제되었습니다');
-  if (isAdmin) await loadAdminFiles(adminTab);
-  else await loadUserFiles(currentProfile.folder_name);
-}
-
-// ── 관리자 화면 ──
-async function renderAdmin() {
-  const c = document.getElementById('main-content');
-  c.innerHTML = `
-    <p class="section-title">담당자 관리</p>
-    <div class="add-user-box">
-      <h3>담당자 추가</h3>
-      <div class="add-user-fields">
-        <div class="field"><label>이름</label><input id="new-name" placeholder="홍길동"></div>
-        <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="홍길동@thebada.com"></div>
-        <div class="field"><label>비밀번호</label><input id="new-pw" type="password" placeholder="비밀번호 (6자 이상)"></div>
-        <button class="btn-add" onclick="addUser()">추가</button>
-      </div>
-    </div>
-    <p class="section-title">담당자별 서류</p>
-    <div class="user-tabs" id="user-tabs"></div>
-    <div class="files-grid" id="admin-files-grid"></div>
-  `;
-  await loadUsers();
-}
-
-async function loadUsers() {
-  const { data } = await sb.from('profiles').select('*').eq('role','user').order('name');
-  const tabs = document.getElementById('user-tabs');
-  if (!data || !data.length) {
-    tabs.innerHTML = '<span style="color:var(--text2);font-size:13px">등록된 담당자가 없습니다</span>';
-    return;
+async function downloadAll(userId, userName) {
+  toast('다운로드 중...', 'success');
+  const { data: files } = await sb.from('files').select('*').eq('user_id', userId);
+  if (!files || !files.length) return toast('파일이 없습니다', 'error');
+  for (const f of files) {
+    await downloadFile(f.file_path, `[${userName}] ${f.file_name}`);
+    await new Promise(r => setTimeout(r, 500));
   }
-  tabs.innerHTML = data.map(u => `
-    <button class="tab" onclick="selectTab('${u.folder_name}','${u.id}',this)">${u.name}</button>
-  `).join('');
-  tabs.querySelector('.tab').click();
-}
-
-async function selectTab(folder, userId, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  adminTab = { folder, userId };
-  await loadAdminFiles(adminTab);
-}
-
-async function loadAdminFiles(tab) {
-  const { data } = await sb.from('files').select('*').eq('user_id', tab.userId).order('uploaded_at',{ascending:false});
-  renderFiles(data || [], 'admin-files-grid', true);
+  toast(`${userName} 다운로드 완료!`);
 }
 
 async function addUser() {
-  const name  = document.getElementById('new-name').value.trim();
+  const name = document.getElementById('new-name').value.trim();
   const email = document.getElementById('new-email').value.trim();
-  const pw    = document.getElementById('new-pw').value.trim();
+  const pw = document.getElementById('new-pw').value.trim();
+  const region = document.getElementById('new-region').value;
   if (!name || !email || !pw) return toast('모든 항목을 입력하세요', 'error');
   if (pw.length < 6) return toast('비밀번호는 6자 이상이어야 합니다', 'error');
-
-  // 폴더명 자동 생성 (이메일 앞부분 영문+숫자만 사용)
   const safeName = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') || 'user';
   const folder = safeName + '_' + Math.random().toString(36).slice(2, 6);
-
-  // Supabase Auth 계정 생성
   const { error: signUpErr } = await sb.auth.signUp({ email, password: pw });
-  if (signUpErr && !signUpErr.message.includes('already registered')) {
-    return toast('계정 생성 실패: ' + signUpErr.message, 'error');
-  }
-
-  const { error } = await sb.from('profiles').insert({ email, name, role:'user', folder_name: folder });
+  if (signUpErr && !signUpErr.message.includes('already registered')) return toast('계정 생성 실패: ' + signUpErr.message, 'error');
+  const { error } = await sb.from('profiles').insert({ email, name, role:'user', folder_name: folder, region });
   if (error) return toast('추가 실패: ' + error.message, 'error');
-
   toast(`${name} 추가 완료!`);
   document.getElementById('new-name').value = '';
   document.getElementById('new-email').value = '';
   document.getElementById('new-pw').value = '';
-  await loadUsers();
+  await loadAdminData();
 }
 
-// ── 세션 복원 ──
 (async () => {
   const { data } = await sb.auth.getSession();
-  if (data.session) {
-    currentUser = data.session.user;
-    await loadProfile();
-    if (currentProfile) showApp();
-  }
+  if (data.session) { currentUser = data.session.user; await loadProfile(); if (currentProfile) showApp(); }
 })();
 </script>
 </body>
