@@ -30,7 +30,7 @@
 body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
 #login-screen {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 20px;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 }
 
@@ -158,6 +158,11 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: va
 .btn-add { background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 700; font-family: inherit; padding: 13px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
 .btn-add:hover { opacity: 0.85; }
 
+.img-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; cursor: pointer; }
+.img-modal-overlay.show { display: flex; }
+.img-modal-overlay img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+.img-modal-close { position: fixed; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 40px; height: 40px; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
 #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); border-radius: 12px; padding: 13px 22px; font-size: 14px; font-weight: 600; color: #fff; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 #toast.error { background: var(--red); }
@@ -206,6 +211,11 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: va
 </div>
 
 <div id="toast"></div>
+
+<div class="img-modal-overlay" id="img-modal" onclick="closeImgModal()">
+  <button class="img-modal-close" onclick="closeImgModal()">✕</button>
+  <img id="img-modal-src" src="" alt="">
+</div>
 
 <script>
 const SUPABASE_URL = 'https://rjhhpnyfochspuznxuox.supabase.co';
@@ -375,7 +385,7 @@ async function loadMyFiles() {
   if (!files.length) { list.innerHTML = '<div class="empty-state">업로드된 영수증이 없습니다</div>'; return; }
   list.innerHTML = files.map(f => `
     <div class="file-item">
-      <div class="file-thumb">${fileEmoji(f.file_name)}</div>
+      <div class="file-thumb" style="cursor:pointer" onclick="openImgModal('${f.file_path}')">${fileEmoji(f.file_name)}</div>
       <div class="file-info">
         <div class="file-name">${f.file_name}</div>
         <div class="file-amount">${formatMoney(f.amount)}</div>
@@ -486,7 +496,7 @@ async function showUserDetail(userId, userName) {
     ${!(files||[]).length ? '<div class="empty-state">업로드된 영수증이 없습니다</div>' :
       (files||[]).map(f => `
         <div class="file-item">
-          <div class="file-thumb">${fileEmoji(f.file_name)}</div>
+          <div class="file-thumb" style="cursor:pointer" onclick="openImgModal('${f.file_path}')">${fileEmoji(f.file_name)}</div>
           <div class="file-info">
             <div class="file-name">${f.file_name}</div>
             <div class="file-amount">${formatMoney(f.amount)}</div>
@@ -532,6 +542,19 @@ async function downloadAll(userId, userName) {
 function openModal() { document.getElementById('add-user-modal').classList.add('show'); }
 function closeModal() { document.getElementById('add-user-modal').classList.remove('show'); }
 
+async function openImgModal(path) {
+  const { data } = await sb.storage.from('files').download(path);
+  if (!data) return toast('이미지를 불러올 수 없습니다', 'error');
+  const url = URL.createObjectURL(data);
+  document.getElementById('img-modal-src').src = url;
+  document.getElementById('img-modal').classList.add('show');
+}
+
+function closeImgModal() {
+  document.getElementById('img-modal').classList.remove('show');
+  document.getElementById('img-modal-src').src = '';
+}
+
 async function addUser() {
   const name = document.getElementById('new-name').value.trim();
   const email = document.getElementById('new-email').value.trim();
@@ -559,7 +582,12 @@ async function addUser() {
 
 (async () => {
   const { data } = await sb.auth.getSession();
-  if (data.session) { currentUser = data.session.user; await loadProfile(); if (currentProfile) showApp(); }
+  if (data.session) {
+    currentUser = data.session.user;
+    await loadProfile();
+    if (currentProfile) { showApp(); return; }
+  }
+  document.getElementById('login-screen').style.display = 'flex';
 })();
 </script>
 </body>
