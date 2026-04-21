@@ -435,10 +435,10 @@ async function loadAdminData() {
     <div class="admin-summary">
       <div class="summary-card"><div class="s-label">전체 담당자</div><div class="s-value">${(users||[]).length}명</div></div>
       <div class="summary-card"><div class="s-label">제출 완료</div><div class="s-value green">${submittedCount}명</div></div>
-      <div class="summary-card" style="display:flex;align-items:center;justify-content:space-between">
-        <div><div class="s-label">총 경비 합계</div><div class="s-value green">${formatMoney(totalAmount)}</div></div>
-        <button class="btn-open-modal" onclick="openModal()">담당자 추가</button>
-      </div>
+      <div class="summary-card"><div class="s-label">총 경비 합계</div><div class="s-value green">${formatMoney(totalAmount)}</div></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
+      <button class="btn-open-modal" onclick="openModal()">담당자 추가</button>
     </div>
   `;
 
