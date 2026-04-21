@@ -142,7 +142,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: va
 
 .add-user-panel { background: var(--surface); border-radius: 20px; padding: 24px 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
 .add-user-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-.add-user-fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+.add-user-fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
 .btn-add { background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 700; font-family: inherit; padding: 13px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
 .btn-add:hover { opacity: 0.85; }
 
@@ -396,6 +396,8 @@ async function renderAdmin() {
         <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="hong@thebada.com"></div>
         <div class="field"><label>비밀번호</label><input id="new-pw" type="password" placeholder="6자 이상"></div>
         <div class="field"><label>지역</label><select id="new-region"><option>서울</option><option>경기도</option><option>인천</option></select></div>
+        <div class="field"><label>은행명</label><input id="new-bank" placeholder="국민은행"></div>
+        <div class="field"><label>계좌번호</label><input id="new-account" placeholder="000-0000-00000"></div>
         <button class="btn-add" onclick="addUser()">추가</button>
       </div>
     </div>
@@ -438,6 +440,7 @@ async function loadAdminData() {
                 <div class="user-card-name">${u.name}</div>
                 <div class="user-card-count">${uFiles.length}건</div>
                 <div class="user-card-amount ${!uTotal?'zero':''}">${uTotal ? formatMoney(uTotal) : '미제출'}</div>
+                ${u.bank_name ? `<div style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.4">${u.bank_name}<br>${u.bank_account||''}</div>` : ''}
               </div>
             `;
           }).join('')}
@@ -512,18 +515,22 @@ async function addUser() {
   const email = document.getElementById('new-email').value.trim();
   const pw = document.getElementById('new-pw').value.trim();
   const region = document.getElementById('new-region').value;
+  const bank_name = document.getElementById('new-bank').value.trim();
+  const bank_account = document.getElementById('new-account').value.trim();
   if (!name || !email || !pw) return toast('모든 항목을 입력하세요', 'error');
   if (pw.length < 6) return toast('비밀번호는 6자 이상이어야 합니다', 'error');
   const safeName = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') || 'user';
   const folder = safeName + '_' + Math.random().toString(36).slice(2, 6);
   const { error: signUpErr } = await sb.auth.signUp({ email, password: pw });
   if (signUpErr && !signUpErr.message.includes('already registered')) return toast('계정 생성 실패: ' + signUpErr.message, 'error');
-  const { error } = await sb.from('profiles').insert({ email, name, role:'user', folder_name: folder, region });
+  const { error } = await sb.from('profiles').insert({ email, name, role:'user', folder_name: folder, region, bank_name, bank_account });
   if (error) return toast('추가 실패: ' + error.message, 'error');
   toast(`${name} 추가 완료!`);
   document.getElementById('new-name').value = '';
   document.getElementById('new-email').value = '';
   document.getElementById('new-pw').value = '';
+  document.getElementById('new-bank').value = '';
+  document.getElementById('new-account').value = '';
   await loadAdminData();
 }
 
