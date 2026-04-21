@@ -473,11 +473,21 @@ async function showUserDetail(userId, userName) {
           </div>
           <div class="file-actions">
             <button class="btn-sm" onclick="downloadFile('${f.file_path}','${f.file_name}')">다운로드</button>
+            <button class="btn-sm btn-sm-del" onclick="adminDeleteFile('${f.id}','${f.file_path}','${userId}','${userName}')">삭제</button>
           </div>
         </div>
       `).join('')}
   `;
   panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function adminDeleteFile(id, path, userId, userName) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  await sb.storage.from('files').remove([path]);
+  await sb.from('files').delete().eq('id', id);
+  toast('삭제되었습니다');
+  await showUserDetail(userId, userName);
+  await loadAdminData();
 }
 
 async function downloadFile(path, name) {
