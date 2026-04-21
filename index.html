@@ -7,180 +7,145 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
-
 :root {
-  --bg: #f5f5f0;
-  --surface: #ffffff;
-  --surface2: #f0f0eb;
-  --accent: #1a1a2e;
-  --green: #2ecc71;
-  --green-bg: #eafaf1;
-  --red: #e74c3c;
-  --blue: #3498db;
-  --blue-bg: #ebf5fb;
-  --text: #1a1a2e;
-  --text2: #7f8c8d;
-  --border: #e0e0d8;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --bg:#f5f5f0;--surface:#fff;--surface2:#f0f0eb;--accent:#1a1a2e;
+  --green:#2ecc71;--green-bg:#eafaf1;--red:#e74c3c;--blue:#3498db;--blue-bg:#ebf5fb;
+  --text:#1a1a2e;--text2:#7f8c8d;--border:#e0e0d8;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.08);
 }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+#login-screen{min-height:100vh;display:none;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);}
+.login-box{background:#fff;border-radius:24px;padding:52px 44px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,0.3);}
+.login-logo{font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;}
+.login-box h1{font-size:26px;font-weight:700;margin-bottom:32px;color:var(--accent);}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:0.8px;text-transform:uppercase;}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 16px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color 0.2s;}
+.field input:focus,.field select:focus{border-color:var(--accent);background:#fff;}
+.btn-login{width:100%;padding:15px;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--accent);color:#fff;margin-top:8px;transition:opacity 0.2s;}
+.btn-login:hover{opacity:0.88;}.btn-login:disabled{opacity:0.5;cursor:not-allowed;}
+.error-msg{background:#fdf2f2;border:1px solid #f5c6c6;border-radius:8px;color:var(--red);font-size:13px;padding:12px 14px;margin-top:12px;display:none;}
+#app{display:none;min-height:100vh;}
+.header{background:var(--accent);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header h2{font-size:15px;font-weight:700;color:#fff;}
+.role-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.role-admin{background:rgba(255,255,255,0.2);color:#fff;}
+.role-user{background:rgba(46,204,113,0.3);color:#2ecc71;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.header-name{font-size:13px;color:rgba(255,255,255,0.7);}
+.btn-logout{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.8);font-size:13px;font-family:inherit;padding:6px 14px;cursor:pointer;transition:background 0.2s;}
+.btn-logout:hover{background:rgba(255,255,255,0.2);}
+.container{max-width:1100px;margin:0 auto;padding:32px 20px;}
+.card{background:var(--surface);border-radius:20px;padding:28px 32px;box-shadow:var(--shadow);margin-bottom:24px;}
+.card h3{font-size:17px;font-weight:700;margin-bottom:20px;color:var(--accent);}
+.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:40px 24px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;margin-bottom:20px;background:var(--surface2);}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:var(--blue-bg);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-zone-icon{font-size:36px;margin-bottom:12px;}
+.upload-zone h4{font-size:15px;font-weight:600;margin-bottom:6px;}
+.upload-zone p{font-size:13px;color:var(--text2);}
+.preview-imgs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.preview-img{width:80px;height:80px;border-radius:10px;object-fit:cover;border:2px solid var(--border);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.amount-wrap{position:relative;}
+.amount-wrap input{padding-right:36px;}
+.amount-unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text2);}
+.btn-upload{width:100%;padding:15px;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--accent);color:#fff;transition:opacity 0.2s;}
+.btn-upload:hover{opacity:0.85;}.btn-upload:disabled{opacity:0.4;cursor:not-allowed;}
+.progress-wrap{background:var(--surface2);border-radius:4px;height:4px;margin-bottom:16px;overflow:hidden;display:none;}
+.progress-bar{height:100%;background:linear-gradient(90deg,#2ecc71,#27ae60);border-radius:4px;transition:width 0.3s;width:0%;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.card-header h3{margin-bottom:0;}
+.total-badge{font-size:18px;font-weight:700;color:var(--green);}
+.file-item{border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;background:var(--surface2);transition:border-color 0.2s;}
+.file-item:hover{border-color:var(--accent);}
+.file-thumb{width:52px;height:52px;border-radius:8px;background:var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.file-info{flex:1;min-width:0;}
+.file-name{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-amount{font-size:15px;font-weight:700;color:var(--green);}
+.file-memo{font-size:12px;color:var(--text2);margin-top:2px;}
+.file-date{font-size:11px;color:var(--text2);margin-top:2px;}
+.file-actions{display:flex;gap:8px;flex-shrink:0;}
+.btn-sm{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;font-family:inherit;padding:6px 12px;cursor:pointer;transition:all 0.2s;}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm-del:hover{border-color:var(--red);color:var(--red);}
+.empty-state{text-align:center;padding:40px 0;color:var(--text2);font-size:14px;}
+.admin-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.summary-card{background:var(--surface);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow);}
+.summary-card .s-label{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
+.summary-card .s-value{font-size:26px;font-weight:700;color:var(--accent);}
+.summary-card .s-value.green{color:var(--green);}
+.region-section{margin-bottom:28px;}
+.region-title{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border);}
+.region-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+.user-card{background:var(--surface);border-radius:14px;padding:18px 16px;box-shadow:var(--shadow);cursor:pointer;transition:all 0.2s;border:2px solid transparent;position:relative;}
+.user-card:hover{transform:translateY(-2px);border-color:var(--accent);}
+.user-card.has-files{border-color:var(--green);background:var(--green-bg);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--border);position:absolute;top:14px;right:14px;}
+.status-dot.green{background:var(--green);box-shadow:0 0 6px rgba(46,204,113,0.5);}
+.user-card-name{font-size:14px;font-weight:700;margin-bottom:6px;}
+.user-card-count{font-size:12px;color:var(--text2);margin-bottom:4px;}
+.user-card-amount{font-size:14px;font-weight:700;color:var(--green);}
+.user-card-amount.zero{color:var(--text2);font-weight:400;font-size:12px;}
+.detail-panel{background:var(--surface);border-radius:20px;padding:28px 32px;box-shadow:var(--shadow);margin-top:24px;display:none;}
+.detail-panel.show{display:block;}
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.detail-header h3{font-size:18px;font-weight:700;}
+.detail-total{font-size:22px;font-weight:700;color:var(--green);}
+.detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.btn-action{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-weight:600;font-family:inherit;padding:9px 18px;cursor:pointer;transition:all 0.2s;}
+.btn-action:hover{border-color:var(--accent);color:var(--accent);}
+.btn-action.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-action.primary:hover{opacity:0.85;}
+.btn-action.danger{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-action.danger:hover{opacity:0.85;}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* 정산 회차 */
+.settlement-bar{background:var(--surface);border-radius:16px;padding:18px 24px;box-shadow:var(--shadow);margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.settlement-info{display:flex;align-items:center;gap:12px;}
+.settlement-badge{font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;}
+.settlement-badge.open{background:rgba(46,204,113,0.15);color:#27ae60;}
+.settlement-badge.closed{background:rgba(127,140,141,0.15);color:var(--text2);}
+.settlement-title{font-size:16px;font-weight:700;}
+.settlement-date{font-size:12px;color:var(--text2);}
+.settlement-actions{display:flex;gap:10px;}
 
-body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.settlement-history{background:var(--surface);border-radius:16px;padding:20px 24px;box-shadow:var(--shadow);margin-bottom:24px;}
+.settlement-history h4{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text2);}
+.settlement-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:color 0.2s;}
+.settlement-item:last-child{border-bottom:none;}
+.settlement-item:hover .settlement-item-title{color:var(--accent);}
+.settlement-item-title{font-size:14px;font-weight:600;}
+.settlement-item-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.settlement-item-amount{font-size:14px;font-weight:700;color:var(--green);}
 
-#login-screen {
-  min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 20px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-}
+/* 모달 */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border-radius:20px;padding:32px;width:100%;max-width:480px;box-shadow:0 24px 60px rgba(0,0,0,0.2);}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:24px;color:var(--accent);}
+.modal-actions{display:flex;gap:12px;margin-top:24px;}
+.btn-modal-confirm{flex:1;padding:13px;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;background:var(--accent);color:#fff;transition:opacity 0.2s;}
+.btn-modal-confirm:hover{opacity:0.85;}
+.btn-modal-cancel{flex:1;padding:13px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;background:var(--surface);color:var(--text2);transition:all 0.2s;}
+.btn-modal-cancel:hover{border-color:var(--accent);color:var(--accent);}
+.btn-open-modal{background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-size:14px;font-weight:700;font-family:inherit;padding:10px 20px;cursor:pointer;transition:opacity 0.2s;}
+.btn-open-modal:hover{opacity:0.85;}
 
-.login-box { background: #fff; border-radius: 24px; padding: 52px 44px; width: 100%; max-width: 420px; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
-.login-logo { font-size: 13px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
-.login-box h1 { font-size: 26px; font-weight: 700; margin-bottom: 32px; color: var(--accent); }
+.img-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;cursor:pointer;}
+.img-modal-overlay.show{display:flex;}
+.img-modal-overlay img{max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;}
+.img-modal-close{position:fixed;top:20px;right:24px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
-.field { margin-bottom: 16px; }
-.field label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
-.field input, .field select, .field textarea { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 13px 16px; color: var(--text); font-size: 15px; font-family: inherit; outline: none; transition: border-color 0.2s; }
-.field input:focus, .field select:focus { border-color: var(--accent); background: #fff; }
-
-.btn-login { width: 100%; padding: 15px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; background: var(--accent); color: #fff; margin-top: 8px; transition: opacity 0.2s; }
-.btn-login:hover { opacity: 0.88; }
-.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.error-msg { background: #fdf2f2; border: 1px solid #f5c6c6; border-radius: 8px; color: var(--red); font-size: 13px; padding: 12px 14px; margin-top: 12px; display: none; }
-
-#app { display: none; min-height: 100vh; }
-
-.header { background: var(--accent); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-.header-left { display: flex; align-items: center; gap: 14px; }
-.header h2 { font-size: 15px; font-weight: 700; color: #fff; }
-.role-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
-.role-admin { background: rgba(255,255,255,0.2); color: #fff; }
-.role-user { background: rgba(46,204,113,0.3); color: #2ecc71; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.header-name { font-size: 13px; color: rgba(255,255,255,0.7); }
-.btn-logout { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 13px; font-family: inherit; padding: 6px 14px; cursor: pointer; transition: background 0.2s; }
-.btn-logout:hover { background: rgba(255,255,255,0.2); }
-
-.container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
-
-.card { background: var(--surface); border-radius: 20px; padding: 28px 32px; box-shadow: var(--shadow); margin-bottom: 24px; }
-.card h3 { font-size: 17px; font-weight: 700; margin-bottom: 20px; color: var(--accent); }
-
-.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; margin-bottom: 20px; background: var(--surface2); }
-.upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: var(--blue-bg); }
-.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.upload-zone-icon { font-size: 36px; margin-bottom: 12px; }
-.upload-zone h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-.upload-zone p { font-size: 13px; color: var(--text2); }
-
-.preview-imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-.preview-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 2px solid var(--border); }
-
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-.amount-wrap { position: relative; }
-.amount-wrap input { padding-right: 36px; }
-.amount-unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text2); }
-
-.btn-upload { width: 100%; padding: 15px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; background: var(--accent); color: #fff; transition: opacity 0.2s; }
-.btn-upload:hover { opacity: 0.85; }
-.btn-upload:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.progress-wrap { background: var(--surface2); border-radius: 4px; height: 4px; margin-bottom: 16px; overflow: hidden; display: none; }
-.progress-bar { height: 100%; background: linear-gradient(90deg, #2ecc71, #27ae60); border-radius: 4px; transition: width 0.3s; width: 0%; }
-
-.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.card-header h3 { margin-bottom: 0; }
-.total-badge { font-size: 18px; font-weight: 700; color: var(--green); }
-
-.file-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; background: var(--surface2); transition: border-color 0.2s; }
-.file-item:hover { border-color: var(--accent); }
-.file-thumb { width: 52px; height: 52px; border-radius: 8px; background: var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.file-info { flex: 1; min-width: 0; }
-.file-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.file-amount { font-size: 15px; font-weight: 700; color: var(--green); }
-.file-memo { font-size: 12px; color: var(--text2); margin-top: 2px; }
-.file-date { font-size: 11px; color: var(--text2); margin-top: 2px; }
-.file-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-.btn-sm { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-size: 12px; font-family: inherit; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
-.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
-.btn-sm-del:hover { border-color: var(--red); color: var(--red); }
-
-.empty-state { text-align: center; padding: 40px 0; color: var(--text2); font-size: 14px; }
-
-.admin-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-.summary-card { background: var(--surface); border-radius: 16px; padding: 22px 24px; box-shadow: var(--shadow); }
-.summary-card .s-label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
-.summary-card .s-value { font-size: 26px; font-weight: 700; color: var(--accent); }
-.summary-card .s-value.green { color: var(--green); }
-
-.region-section { margin-bottom: 28px; }
-.region-title { font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
-.region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-
-.user-card { background: var(--surface); border-radius: 14px; padding: 18px 16px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; position: relative; }
-.user-card:hover { transform: translateY(-2px); border-color: var(--accent); }
-.user-card.has-files { border-color: var(--green); background: var(--green-bg); }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); position: absolute; top: 14px; right: 14px; }
-.status-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(46,204,113,0.5); }
-.user-card-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-.user-card-count { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-.user-card-amount { font-size: 14px; font-weight: 700; color: var(--green); }
-.user-card-amount.zero { color: var(--text2); font-weight: 400; font-size: 12px; }
-
-.detail-panel { background: var(--surface); border-radius: 20px; padding: 28px 32px; box-shadow: var(--shadow); margin-top: 24px; display: none; }
-.detail-panel.show { display: block; }
-.detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-.detail-header h3 { font-size: 18px; font-weight: 700; }
-.detail-total { font-size: 22px; font-weight: 700; color: var(--green); }
-.detail-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-.btn-action { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 13px; font-weight: 600; font-family: inherit; padding: 9px 18px; cursor: pointer; transition: all 0.2s; }
-.btn-action:hover { border-color: var(--accent); color: var(--accent); }
-.btn-action.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn-action.primary:hover { opacity: 0.85; }
-
-.add-user-panel { background: var(--surface); border-radius: 20px; padding: 24px 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
-.add-user-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-.add-user-fields { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
-
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
-.modal-overlay.show { display: flex; }
-.modal { background: var(--surface); border-radius: 20px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 24px 60px rgba(0,0,0,0.2); }
-.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 24px; color: var(--accent); }
-.modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-.btn-modal-confirm { flex: 1; padding: 13px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; background: var(--accent); color: #fff; transition: opacity 0.2s; }
-.btn-modal-confirm:hover { opacity: 0.85; }
-.btn-modal-cancel { flex: 1; padding: 13px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; background: var(--surface); color: var(--text2); transition: all 0.2s; }
-.btn-modal-cancel:hover { border-color: var(--accent); color: var(--accent); }
-.btn-open-modal { background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 700; font-family: inherit; padding: 10px 20px; cursor: pointer; transition: opacity 0.2s; }
-.btn-open-modal:hover { opacity: 0.85; }
-.btn-add { background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 700; font-family: inherit; padding: 13px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
-.btn-add:hover { opacity: 0.85; }
-
-.img-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; cursor: pointer; }
-.img-modal-overlay.show { display: flex; }
-.img-modal-overlay img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
-.img-modal-close { position: fixed; top: 20px; right: 24px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; width: 40px; height: 40px; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-#toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); border-radius: 12px; padding: 13px 22px; font-size: 14px; font-weight: 600; color: #fff; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; }
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-#toast.error { background: var(--red); }
-#toast.success { background: var(--green); }
-
-.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-@media (max-width: 768px) {
-  .admin-summary { grid-template-columns: 1fr 1fr; }
-  .add-user-fields { grid-template-columns: 1fr 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .login-box { padding: 36px 24px; }
-}
-@media (max-width: 480px) {
-  .admin-summary { grid-template-columns: 1fr; }
-  .add-user-fields { grid-template-columns: 1fr; }
-}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);border-radius:12px;padding:13px 22px;font-size:14px;font-weight:600;color:#fff;opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.error{background:var(--red);}
+#toast.success{background:var(--green);}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:768px){.admin-summary{grid-template-columns:1fr 1fr;}.form-row{grid-template-columns:1fr;}.login-box{padding:36px 24px;}.settlement-bar{flex-direction:column;align-items:flex-start;}}
+@media(max-width:480px){.admin-summary{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -217,95 +182,137 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: va
   <img id="img-modal-src" src="" alt="">
 </div>
 
+<div class="modal-overlay" id="add-user-modal">
+  <div class="modal">
+    <h3>담당자 추가</h3>
+    <div class="field"><label>이름</label><input id="new-name" placeholder="홍길동"></div>
+    <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="hong@thebada.com"></div>
+    <div class="field"><label>비밀번호</label><input id="new-pw" type="password" placeholder="6자 이상"></div>
+    <div class="field"><label>지역</label><select id="new-region"><option>서울</option><option>경기도</option><option>인천</option></select></div>
+    <div class="field"><label>은행명</label><input id="new-bank" placeholder="국민은행"></div>
+    <div class="field"><label>계좌번호</label><input id="new-account" placeholder="000-0000-00000"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-confirm" onclick="addUser()">등록</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">취소</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="new-settlement-modal">
+  <div class="modal">
+    <h3>새 정산 회차 열기</h3>
+    <div class="field"><label>회차 이름</label><input id="settlement-title" placeholder="예: 4월 3주차 정산"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-confirm" onclick="createSettlement()">열기</button>
+      <button class="btn-modal-cancel" onclick="document.getElementById('new-settlement-modal').classList.remove('show')">취소</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://rjhhpnyfochspuznxuox.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_XX_4hSo69x8MpCcK6k7TsQ_mZtJq3q6';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null, currentProfile = null, selectedFiles = [];
+let currentUser = null, currentProfile = null, selectedFiles = [], currentSettlement = null;
 const REGIONS = ['서울', '경기도', '인천'];
 
-function toast(msg, type = 'success') {
+function toast(msg, type='success') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'show ' + type;
   setTimeout(() => t.className = '', 2800);
 }
-
 function formatMoney(n) { return n ? Number(n).toLocaleString('ko-KR') + '원' : '0원'; }
 function formatDate(str) {
+  if (!str) return '-';
   const d = new Date(str);
-  return d.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }) + ' ' +
-    d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('ko-KR', {month:'2-digit',day:'2-digit'}) + ' ' +
+    d.toLocaleTimeString('ko-KR', {hour:'2-digit',minute:'2-digit'});
+}
+function formatDateShort(str) {
+  if (!str) return '-';
+  const d = new Date(str);
+  return d.toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
 }
 function fileEmoji(name) {
   const ext = (name||'').split('.').pop().toLowerCase();
-  return ['jpg','jpeg','png','gif','webp','heic'].includes(ext) ? '🖼️' : ext === 'pdf' ? '📄' : '📎';
+  return ['jpg','jpeg','png','gif','webp','heic'].includes(ext) ? '🖼️' : ext==='pdf' ? '📄' : '📎';
 }
-
 async function compressImage(file) {
   if (!file.type.startsWith('image/')) return file;
   return new Promise(resolve => {
     const img = new Image(), url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 1400; let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) { if (w > h) { h = Math.round(h*MAX/w); w = MAX; } else { w = Math.round(w*MAX/h); h = MAX; } }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      canvas.toBlob(blob => { URL.revokeObjectURL(url); resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {type:'image/jpeg'})); }, 'image/jpeg', 0.85);
+      const MAX=1400; let w=img.width, h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(blob=>{URL.revokeObjectURL(url);resolve(new File([blob],file.name.replace(/\.[^.]+$/,'.jpg'),{type:'image/jpeg'}));},'image/jpeg',0.85);
     };
-    img.src = url;
+    img.src=url;
   });
 }
 
 async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw = document.getElementById('login-pw').value;
-  const btn = document.getElementById('login-btn');
-  const err = document.getElementById('login-error');
-  err.style.display = 'none'; btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>로그인 중...';
+  const email=document.getElementById('login-email').value.trim();
+  const pw=document.getElementById('login-pw').value;
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-error');
+  err.style.display='none'; btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>로그인 중...';
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-    if (error) throw error;
-    currentUser = data.user;
+    const {data,error}=await sb.auth.signInWithPassword({email,password:pw});
+    if(error) throw error;
+    currentUser=data.user;
     await loadProfile(); showApp();
   } catch(e) {
-    err.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.'; err.style.display = 'block';
-  } finally { btn.disabled = false; btn.textContent = '로그인'; }
+    err.textContent='이메일 또는 비밀번호가 올바르지 않습니다.'; err.style.display='block';
+  } finally { btn.disabled=false; btn.textContent='로그인'; }
 }
 
 async function doLogout() {
-  await sb.auth.signOut(); currentUser = null; currentProfile = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
+  await sb.auth.signOut(); currentUser=null; currentProfile=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
 }
 
 async function loadProfile() {
-  const { data } = await sb.from('profiles').select('*').eq('email', currentUser.email).single();
-  currentProfile = data;
+  const {data}=await sb.from('profiles').select('*').eq('email',currentUser.email).single();
+  currentProfile=data;
 }
 
 function showApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('user-name-label').textContent = currentProfile.name;
-  const badge = document.getElementById('role-badge');
-  if (currentProfile.role === 'admin') {
-    badge.textContent = '관리자'; badge.className = 'role-badge role-admin'; renderAdmin();
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('user-name-label').textContent=currentProfile.name;
+  const badge=document.getElementById('role-badge');
+  if(currentProfile.role==='admin'){
+    badge.textContent='관리자'; badge.className='role-badge role-admin'; renderAdmin();
   } else {
-    badge.textContent = '담당자'; badge.className = 'role-badge role-user'; renderUser();
+    badge.textContent='담당자'; badge.className='role-badge role-user'; renderUser();
   }
 }
 
 // ── 담당자 화면 ──
 async function renderUser() {
-  document.getElementById('main-content').innerHTML = `
+  const {data:settlements}=await sb.from('settlements').select('*').eq('status','open').order('created_at',{ascending:false}).limit(1);
+  currentSettlement=settlements&&settlements[0]||null;
+
+  document.getElementById('main-content').innerHTML=`
     <div class="card">
       <h3>영수증 업로드</h3>
+      ${currentSettlement
+        ? `<div style="background:var(--green-bg);border:1px solid var(--green);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#27ae60;font-weight:600">
+            📋 현재 정산 회차: ${currentSettlement.title}
+          </div>`
+        : `<div style="background:#fdf2f2;border:1px solid #f5c6c6;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--red);font-weight:600">
+            ⚠️ 현재 열린 정산 회차가 없습니다. 관리자에게 문의하세요.
+          </div>`
+      }
       <div class="upload-zone" id="upload-zone">
-        <input type="file" id="file-input" multiple accept="image/*,.pdf">
+        <input type="file" id="file-input" multiple accept="image/*,.pdf" ${!currentSettlement?'disabled':''}>
         <div class="upload-zone-icon">📸</div>
         <h4>영수증 사진을 선택하거나 끌어다 놓으세요</h4>
         <p>이미지는 자동 압축됩니다</p>
@@ -318,7 +325,7 @@ async function renderUser() {
         <div class="field"><label>특이사항 (선택)</label><input type="text" id="memo-input" placeholder="예: 주차비, 식대 등"></div>
       </div>
       <div class="progress-wrap" id="pw"><div class="progress-bar" id="pb"></div></div>
-      <button class="btn-upload" id="upload-btn" onclick="doUpload()">업로드</button>
+      <button class="btn-upload" id="upload-btn" onclick="doUpload()" ${!currentSettlement?'disabled':''}>업로드</button>
     </div>
     <div class="card">
       <div class="card-header">
@@ -328,68 +335,69 @@ async function renderUser() {
       <div id="my-files-list"></div>
     </div>
   `;
-  document.getElementById('file-input').addEventListener('change', e => handleFileSelect(e.target.files));
-  const uz = document.getElementById('upload-zone');
-  uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
-  uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
-  uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag-over'); handleFileSelect(e.dataTransfer.files); });
+  document.getElementById('file-input').addEventListener('change', e=>handleFileSelect(e.target.files));
+  const uz=document.getElementById('upload-zone');
+  uz.addEventListener('dragover', e=>{e.preventDefault();uz.classList.add('drag-over');});
+  uz.addEventListener('dragleave', ()=>uz.classList.remove('drag-over'));
+  uz.addEventListener('drop', e=>{e.preventDefault();uz.classList.remove('drag-over');handleFileSelect(e.dataTransfer.files);});
   await loadMyFiles();
 }
 
 function handleFileSelect(files) {
-  selectedFiles = Array.from(files);
-  const preview = document.getElementById('preview-imgs');
-  preview.innerHTML = '';
-  selectedFiles.forEach(f => {
-    if (f.type.startsWith('image/')) {
-      const img = document.createElement('img');
-      img.className = 'preview-img'; img.src = URL.createObjectURL(f); preview.appendChild(img);
+  selectedFiles=Array.from(files);
+  const preview=document.getElementById('preview-imgs');
+  preview.innerHTML='';
+  selectedFiles.forEach(f=>{
+    if(f.type.startsWith('image/')){
+      const img=document.createElement('img');
+      img.className='preview-img'; img.src=URL.createObjectURL(f); preview.appendChild(img);
     }
   });
 }
 
 async function doUpload() {
-  if (!selectedFiles.length) return toast('파일을 선택해주세요', 'error');
-  const amount = parseInt(document.getElementById('amount-input').value) || 0;
-  const memo = document.getElementById('memo-input').value.trim();
-  const btn = document.getElementById('upload-btn');
-  const pw = document.getElementById('pw'), pb = document.getElementById('pb');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>업로드 중...';
-  pw.style.display = 'block';
-  let done = 0;
-  for (let raw of selectedFiles) {
-    const file = await compressImage(raw);
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = `${currentProfile.folder_name}/${Date.now()}_${safeName}`;
-    const { error } = await sb.storage.from('files').upload(path, file);
-    if (!error) {
-      await sb.from('files').insert({ user_id: currentProfile.id, file_name: file.name, file_path: path, file_size: file.size, amount, memo });
+  if(!selectedFiles.length) return toast('파일을 선택해주세요','error');
+  if(!currentSettlement) return toast('열린 정산 회차가 없습니다','error');
+  const amount=parseInt(document.getElementById('amount-input').value)||0;
+  const memo=document.getElementById('memo-input').value.trim();
+  const btn=document.getElementById('upload-btn');
+  const pw=document.getElementById('pw'),pb=document.getElementById('pb');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>업로드 중...';
+  pw.style.display='block';
+  let done=0;
+  for(let raw of selectedFiles){
+    const file=await compressImage(raw);
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=`${currentProfile.folder_name}/${Date.now()}_${safeName}`;
+    const {error}=await sb.storage.from('files').upload(path,file);
+    if(!error){
+      await sb.from('files').insert({user_id:currentProfile.id,file_name:file.name,file_path:path,file_size:file.size,amount,memo,settlement_id:currentSettlement.id});
     }
-    done++; pb.style.width = (done / selectedFiles.length * 100) + '%';
+    done++; pb.style.width=(done/selectedFiles.length*100)+'%';
   }
-  setTimeout(() => { pw.style.display = 'none'; pb.style.width = '0%'; }, 600);
-  btn.disabled = false; btn.textContent = '업로드';
-  selectedFiles = [];
-  document.getElementById('preview-imgs').innerHTML = '';
-  document.getElementById('amount-input').value = '';
-  document.getElementById('memo-input').value = '';
+  setTimeout(()=>{pw.style.display='none';pb.style.width='0%';},600);
+  btn.disabled=false; btn.textContent='업로드';
+  selectedFiles=[];
+  document.getElementById('preview-imgs').innerHTML='';
+  document.getElementById('amount-input').value='';
+  document.getElementById('memo-input').value='';
   toast('업로드 완료!'); await loadMyFiles();
 }
 
 async function loadMyFiles() {
-  const { data } = await sb.from('files').select('*').eq('user_id', currentProfile.id).order('uploaded_at', {ascending:false});
-  const files = data || [];
-  const total = files.reduce((s, f) => s + (f.amount||0), 0);
-  document.getElementById('my-total').textContent = '합계: ' + formatMoney(total);
-  const list = document.getElementById('my-files-list');
-  if (!files.length) { list.innerHTML = '<div class="empty-state">업로드된 영수증이 없습니다</div>'; return; }
-  list.innerHTML = files.map(f => `
+  const {data}=await sb.from('files').select('*').eq('user_id',currentProfile.id).order('uploaded_at',{ascending:false});
+  const files=data||[];
+  const total=files.reduce((s,f)=>s+(f.amount||0),0);
+  document.getElementById('my-total').textContent='합계: '+formatMoney(total);
+  const list=document.getElementById('my-files-list');
+  if(!files.length){list.innerHTML='<div class="empty-state">업로드된 영수증이 없습니다</div>';return;}
+  list.innerHTML=files.map(f=>`
     <div class="file-item">
       <div class="file-thumb" style="cursor:pointer" onclick="openImgModal('${f.file_path}')">${fileEmoji(f.file_name)}</div>
       <div class="file-info">
         <div class="file-name">${f.file_name}</div>
         <div class="file-amount">${formatMoney(f.amount)}</div>
-        ${f.memo ? `<div class="file-memo">${f.memo}</div>` : ''}
+        ${f.memo?`<div class="file-memo">${f.memo}</div>`:''}
         <div class="file-date">${formatDate(f.uploaded_at)}</div>
       </div>
       <div class="file-actions">
@@ -400,76 +408,101 @@ async function loadMyFiles() {
   `).join('');
 }
 
-async function deleteMyFile(id, path) {
-  if (!confirm('삭제하시겠습니까?')) return;
+async function deleteMyFile(id,path){
+  if(!confirm('삭제하시겠습니까?')) return;
   await sb.storage.from('files').remove([path]);
-  await sb.from('files').delete().eq('id', id);
+  await sb.from('files').delete().eq('id',id);
   toast('삭제되었습니다'); await loadMyFiles();
 }
 
 // ── 관리자 화면 ──
 async function renderAdmin() {
-  document.getElementById('main-content').innerHTML = `
+  document.getElementById('main-content').innerHTML=`
     <div id="summary-area"></div>
+    <div id="settlement-area"></div>
     <div id="regions-area"></div>
     <div class="detail-panel" id="detail-panel"></div>
-
-    <div class="modal-overlay" id="add-user-modal">
-      <div class="modal">
-        <h3>담당자 추가</h3>
-        <div class="field"><label>이름</label><input id="new-name" placeholder="홍길동"></div>
-        <div class="field"><label>이메일</label><input id="new-email" type="email" placeholder="hong@thebada.com"></div>
-        <div class="field"><label>비밀번호</label><input id="new-pw" type="password" placeholder="6자 이상"></div>
-        <div class="field"><label>지역</label><select id="new-region"><option>서울</option><option>경기도</option><option>인천</option></select></div>
-        <div class="field"><label>은행명</label><input id="new-bank" placeholder="국민은행"></div>
-        <div class="field"><label>계좌번호</label><input id="new-account" placeholder="000-0000-00000"></div>
-        <div class="modal-actions">
-          <button class="btn-modal-confirm" onclick="addUser()">등록</button>
-          <button class="btn-modal-cancel" onclick="closeModal()">취소</button>
-        </div>
-      </div>
-    </div>
   `;
   await loadAdminData();
 }
 
 async function loadAdminData() {
-  const { data: users } = await sb.from('profiles').select('*').eq('role','user').order('name');
-  const { data: files } = await sb.from('files').select('*');
-  const userFiles = {};
-  (files||[]).forEach(f => { if (!userFiles[f.user_id]) userFiles[f.user_id] = []; userFiles[f.user_id].push(f); });
-  const totalAmount = (files||[]).reduce((s,f) => s+(f.amount||0), 0);
-  const submittedCount = (users||[]).filter(u => (userFiles[u.id]||[]).length > 0).length;
+  const {data:users}=await sb.from('profiles').select('*').eq('role','user').order('name');
+  const {data:settlements}=await sb.from('settlements').select('*').order('created_at',{ascending:false});
+  const openSettlement=(settlements||[]).find(s=>s.status==='open')||null;
+  currentSettlement=openSettlement;
 
-  document.getElementById('summary-area').innerHTML = `
+  const {data:files}=await sb.from('files').select('*').eq('settlement_id', openSettlement?.id||'00000000-0000-0000-0000-000000000000');
+  const allFiles=files||[];
+  const userFiles={};
+  allFiles.forEach(f=>{if(!userFiles[f.user_id])userFiles[f.user_id]=[];userFiles[f.user_id].push(f);});
+  const totalAmount=allFiles.reduce((s,f)=>s+(f.amount||0),0);
+  const submittedCount=(users||[]).filter(u=>(userFiles[u.id]||[]).length>0).length;
+
+  document.getElementById('summary-area').innerHTML=`
     <div class="admin-summary">
       <div class="summary-card"><div class="s-label">전체 담당자</div><div class="s-value">${(users||[]).length}명</div></div>
-      <div class="summary-card"><div class="s-label">제출 완료</div><div class="s-value green">${submittedCount}명</div></div>
-      <div class="summary-card"><div class="s-label">총 경비 합계</div><div class="s-value green">${formatMoney(totalAmount)}</div></div>
+      <div class="summary-card"><div class="s-label">이번 회차 제출</div><div class="s-value green">${submittedCount}명</div></div>
+      <div class="summary-card"><div class="s-label">이번 회차 합계</div><div class="s-value green">${formatMoney(totalAmount)}</div></div>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
       <button class="btn-open-modal" onclick="openModal()">담당자 추가</button>
     </div>
   `;
 
-  document.getElementById('regions-area').innerHTML = REGIONS.map(region => {
-    const regionUsers = (users||[]).filter(u => (u.region||'서울') === region);
-    if (!regionUsers.length) return '';
+  // 정산 회차 바
+  const closedSettlements=(settlements||[]).filter(s=>s.status==='closed');
+  document.getElementById('settlement-area').innerHTML=`
+    <div class="settlement-bar">
+      <div class="settlement-info">
+        <span class="settlement-badge ${openSettlement?'open':'closed'}">${openSettlement?'진행중':'회차 없음'}</span>
+        <div>
+          <div class="settlement-title">${openSettlement?openSettlement.title:'열린 정산 회차가 없습니다'}</div>
+          ${openSettlement?`<div class="settlement-date">시작일: ${formatDateShort(openSettlement.created_at)}</div>`:''}
+        </div>
+      </div>
+      <div class="settlement-actions">
+        ${openSettlement
+          ? `<button class="btn-action danger" onclick="closeSettlement('${openSettlement.id}')">정산 완료 처리</button>`
+          : `<button class="btn-action primary" onclick="document.getElementById('new-settlement-modal').classList.add('show')">새 정산 회차 열기</button>`
+        }
+      </div>
+    </div>
+    ${closedSettlements.length>0?`
+    <div class="settlement-history">
+      <h4>이전 정산 내역</h4>
+      ${closedSettlements.map(s=>`
+        <div class="settlement-item" onclick="viewSettlement('${s.id}','${s.title}')">
+          <div>
+            <div class="settlement-item-title">${s.title}</div>
+            <div class="settlement-item-meta">${formatDateShort(s.created_at)} ~ ${formatDateShort(s.closed_at)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="settlement-badge closed">완료</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>`:''}
+  `;
+
+  document.getElementById('regions-area').innerHTML=REGIONS.map(region=>{
+    const regionUsers=(users||[]).filter(u=>(u.region||'서울')===region);
+    if(!regionUsers.length) return '';
     return `
       <div class="region-section">
         <div class="region-title">📍 ${region} <span style="font-weight:400;font-size:11px">${regionUsers.length}명</span></div>
         <div class="region-grid">
-          ${regionUsers.map(u => {
-            const uFiles = userFiles[u.id] || [];
-            const uTotal = uFiles.reduce((s,f) => s+(f.amount||0), 0);
-            const has = uFiles.length > 0;
+          ${regionUsers.map(u=>{
+            const uFiles=userFiles[u.id]||[];
+            const uTotal=uFiles.reduce((s,f)=>s+(f.amount||0),0);
+            const has=uFiles.length>0;
             return `
-              <div class="user-card ${has?'has-files':''}" onclick="showUserDetail('${u.id}','${u.name}')">
+              <div class="user-card ${has?'has-files':''}" onclick="showUserDetail('${u.id}','${u.name}','${currentSettlement?.id||''}')">
                 <div class="status-dot ${has?'green':''}"></div>
                 <div class="user-card-name">${u.name}</div>
                 <div class="user-card-count">${uFiles.length}건</div>
-                <div class="user-card-amount ${!uTotal?'zero':''}">${uTotal ? formatMoney(uTotal) : '미제출'}</div>
-                ${u.bank_name ? `<div style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.4">${u.bank_name}<br>${u.bank_account||''}</div>` : ''}
+                <div class="user-card-amount ${!uTotal?'zero':''}">${uTotal?formatMoney(uTotal):'미제출'}</div>
+                ${u.bank_name?`<div style="font-size:11px;color:var(--text2);margin-top:6px;line-height:1.4">${u.bank_name}<br>${u.bank_account||''}</div>`:''}
               </div>
             `;
           }).join('')}
@@ -479,115 +512,188 @@ async function loadAdminData() {
   }).join('');
 }
 
-async function showUserDetail(userId, userName) {
-  const { data: files } = await sb.from('files').select('*').eq('user_id', userId).order('uploaded_at', {ascending:false});
-  const total = (files||[]).reduce((s,f) => s+(f.amount||0), 0);
-  const panel = document.getElementById('detail-panel');
-  panel.className = 'detail-panel show';
-  panel.innerHTML = `
+async function createSettlement() {
+  const title=document.getElementById('settlement-title').value.trim();
+  if(!title) return toast('회차 이름을 입력하세요','error');
+  const {error}=await sb.from('settlements').insert({title,status:'open'});
+  if(error) return toast('생성 실패: '+error.message,'error');
+  toast(title+' 정산 회차가 열렸습니다!');
+  document.getElementById('new-settlement-modal').classList.remove('show');
+  document.getElementById('settlement-title').value='';
+  await loadAdminData();
+}
+
+async function closeSettlement(id) {
+  if(!confirm('정산을 완료 처리하시겠습니까?\n완료 후에는 이 회차에 더 이상 업로드할 수 없습니다.')) return;
+  const {error}=await sb.from('settlements').update({status:'closed',closed_at:new Date().toISOString()}).eq('id',id);
+  if(error) return toast('처리 실패','error');
+  toast('정산 완료 처리됐습니다!');
+  await loadAdminData();
+}
+
+async function viewSettlement(settlementId, title) {
+  const {data:files}=await sb.from('files').select('*').eq('settlement_id',settlementId).order('uploaded_at',{ascending:false});
+  const {data:users}=await sb.from('profiles').select('*').eq('role','user');
+  const total=(files||[]).reduce((s,f)=>s+(f.amount||0),0);
+  const panel=document.getElementById('detail-panel');
+  panel.className='detail-panel show';
+
+  const userMap={};
+  (users||[]).forEach(u=>userMap[u.id]=u);
+  const byUser={};
+  (files||[]).forEach(f=>{if(!byUser[f.user_id])byUser[f.user_id]=[];byUser[f.user_id].push(f);});
+
+  panel.innerHTML=`
+    <div class="detail-header">
+      <div><h3>${title}</h3><div style="font-size:13px;color:var(--text2);margin-top:4px">${(files||[]).length}건 총 업로드</div></div>
+      <div class="detail-total">${formatMoney(total)}</div>
+    </div>
+    <div class="detail-actions">
+      <button class="btn-action" onclick="document.getElementById('detail-panel').className='detail-panel'">닫기</button>
+    </div>
+    ${Object.keys(byUser).map(uid=>{
+      const u=userMap[uid];
+      const uFiles=byUser[uid];
+      const uTotal=uFiles.reduce((s,f)=>s+(f.amount||0),0);
+      return `
+        <div style="margin-bottom:20px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between">
+            <span>${u?u.name:'알 수 없음'}</span>
+            <span style="color:var(--green)">${formatMoney(uTotal)}</span>
+          </div>
+          ${uFiles.map(f=>`
+            <div class="file-item">
+              <div class="file-thumb" style="cursor:pointer" onclick="openImgModal('${f.file_path}')">${fileEmoji(f.file_name)}</div>
+              <div class="file-info">
+                <div class="file-name">${f.file_name}</div>
+                <div class="file-amount">${formatMoney(f.amount)}</div>
+                ${f.memo?`<div class="file-memo">${f.memo}</div>`:''}
+                <div class="file-date">${formatDate(f.uploaded_at)}</div>
+              </div>
+              <div class="file-actions">
+                <button class="btn-sm" onclick="downloadFile('${f.file_path}','${f.file_name}')">다운로드</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }).join('')}
+  `;
+  panel.scrollIntoView({behavior:'smooth'});
+}
+
+async function showUserDetail(userId, userName, settlementId) {
+  const query=sb.from('files').select('*').eq('user_id',userId).order('uploaded_at',{ascending:false});
+  if(settlementId) query.eq('settlement_id',settlementId);
+  const {data:files}=await query;
+  const total=(files||[]).reduce((s,f)=>s+(f.amount||0),0);
+  const panel=document.getElementById('detail-panel');
+  panel.className='detail-panel show';
+  panel.innerHTML=`
     <div class="detail-header">
       <div><h3>${userName} 담당자</h3><div style="font-size:13px;color:var(--text2);margin-top:4px">${(files||[]).length}건 업로드</div></div>
       <div class="detail-total">${formatMoney(total)}</div>
     </div>
     <div class="detail-actions">
-      <button class="btn-action primary" onclick="downloadAll('${userId}','${userName}')">전체 다운로드</button>
+      <button class="btn-action primary" onclick="downloadAll('${userId}','${userName}','${settlementId||''}')">전체 다운로드</button>
       <button class="btn-action" onclick="document.getElementById('detail-panel').className='detail-panel'">닫기</button>
     </div>
-    ${!(files||[]).length ? '<div class="empty-state">업로드된 영수증이 없습니다</div>' :
-      (files||[]).map(f => `
+    ${!(files||[]).length?'<div class="empty-state">업로드된 영수증이 없습니다</div>':
+      (files||[]).map(f=>`
         <div class="file-item">
           <div class="file-thumb" style="cursor:pointer" onclick="openImgModal('${f.file_path}')">${fileEmoji(f.file_name)}</div>
           <div class="file-info">
             <div class="file-name">${f.file_name}</div>
             <div class="file-amount">${formatMoney(f.amount)}</div>
-            ${f.memo ? `<div class="file-memo">${f.memo}</div>` : ''}
+            ${f.memo?`<div class="file-memo">${f.memo}</div>`:''}
             <div class="file-date">${formatDate(f.uploaded_at)}</div>
           </div>
           <div class="file-actions">
             <button class="btn-sm" onclick="downloadFile('${f.file_path}','${f.file_name}')">다운로드</button>
-            <button class="btn-sm btn-sm-del" onclick="adminDeleteFile('${f.id}','${f.file_path}','${userId}','${userName}')">삭제</button>
+            <button class="btn-sm btn-sm-del" onclick="adminDeleteFile('${f.id}','${f.file_path}','${userId}','${userName}','${settlementId||''}')">삭제</button>
           </div>
         </div>
       `).join('')}
   `;
-  panel.scrollIntoView({ behavior: 'smooth' });
+  panel.scrollIntoView({behavior:'smooth'});
 }
 
-async function adminDeleteFile(id, path, userId, userName) {
-  if (!confirm('삭제하시겠습니까?')) return;
+async function adminDeleteFile(id,path,userId,userName,settlementId){
+  if(!confirm('삭제하시겠습니까?')) return;
   await sb.storage.from('files').remove([path]);
-  await sb.from('files').delete().eq('id', id);
+  await sb.from('files').delete().eq('id',id);
   toast('삭제되었습니다');
-  await showUserDetail(userId, userName);
+  await showUserDetail(userId,userName,settlementId);
   await loadAdminData();
 }
 
-async function downloadFile(path, name) {
-  const { data } = await sb.storage.from('files').download(path);
-  if (!data) return toast('다운로드 실패', 'error');
-  const a = document.createElement('a'); a.href = URL.createObjectURL(data); a.download = name; a.click();
+async function downloadFile(path,name){
+  const {data}=await sb.storage.from('files').download(path);
+  if(!data) return toast('다운로드 실패','error');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(data); a.download=name; a.click();
 }
 
-async function downloadAll(userId, userName) {
-  toast('다운로드 중...', 'success');
-  const { data: files } = await sb.from('files').select('*').eq('user_id', userId);
-  if (!files || !files.length) return toast('파일이 없습니다', 'error');
-  for (const f of files) {
-    await downloadFile(f.file_path, `[${userName}] ${f.file_name}`);
-    await new Promise(r => setTimeout(r, 500));
+async function downloadAll(userId,userName,settlementId){
+  toast('다운로드 중...','success');
+  const query=sb.from('files').select('*').eq('user_id',userId);
+  if(settlementId) query.eq('settlement_id',settlementId);
+  const {data:files}=await query;
+  if(!files||!files.length) return toast('파일이 없습니다','error');
+  for(const f of files){
+    await downloadFile(f.file_path,`[${userName}] ${f.file_name}`);
+    await new Promise(r=>setTimeout(r,500));
   }
   toast(`${userName} 다운로드 완료!`);
 }
 
-function openModal() { document.getElementById('add-user-modal').classList.add('show'); }
-function closeModal() { document.getElementById('add-user-modal').classList.remove('show'); }
-
-async function openImgModal(path) {
-  const { data } = await sb.storage.from('files').download(path);
-  if (!data) return toast('이미지를 불러올 수 없습니다', 'error');
-  const url = URL.createObjectURL(data);
-  document.getElementById('img-modal-src').src = url;
+async function openImgModal(path){
+  const {data}=await sb.storage.from('files').download(path);
+  if(!data) return toast('이미지를 불러올 수 없습니다','error');
+  const url=URL.createObjectURL(data);
+  document.getElementById('img-modal-src').src=url;
   document.getElementById('img-modal').classList.add('show');
 }
-
-function closeImgModal() {
+function closeImgModal(){
   document.getElementById('img-modal').classList.remove('show');
-  document.getElementById('img-modal-src').src = '';
+  document.getElementById('img-modal-src').src='';
 }
 
-async function addUser() {
-  const name = document.getElementById('new-name').value.trim();
-  const email = document.getElementById('new-email').value.trim();
-  const pw = document.getElementById('new-pw').value.trim();
-  const region = document.getElementById('new-region').value;
-  const bank_name = document.getElementById('new-bank').value.trim();
-  const bank_account = document.getElementById('new-account').value.trim();
-  if (!name || !email || !pw) return toast('모든 항목을 입력하세요', 'error');
-  if (pw.length < 6) return toast('비밀번호는 6자 이상이어야 합니다', 'error');
-  const safeName = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') || 'user';
-  const folder = safeName + '_' + Math.random().toString(36).slice(2, 6);
-  const { error: signUpErr } = await sb.auth.signUp({ email, password: pw });
-  if (signUpErr && !signUpErr.message.includes('already registered')) return toast('계정 생성 실패: ' + signUpErr.message, 'error');
-  const { error } = await sb.from('profiles').insert({ email, name, role:'user', folder_name: folder, region, bank_name, bank_account });
-  if (error) return toast('추가 실패: ' + error.message, 'error');
+function openModal(){ document.getElementById('add-user-modal').classList.add('show'); }
+function closeModal(){ document.getElementById('add-user-modal').classList.remove('show'); }
+
+async function addUser(){
+  const name=document.getElementById('new-name').value.trim();
+  const email=document.getElementById('new-email').value.trim();
+  const pw=document.getElementById('new-pw').value.trim();
+  const region=document.getElementById('new-region').value;
+  const bank_name=document.getElementById('new-bank').value.trim();
+  const bank_account=document.getElementById('new-account').value.trim();
+  if(!name||!email||!pw) return toast('모든 항목을 입력하세요','error');
+  if(pw.length<6) return toast('비밀번호는 6자 이상이어야 합니다','error');
+  const safeName=email.split('@')[0].replace(/[^a-zA-Z0-9]/g,'')||'user';
+  const folder=safeName+'_'+Math.random().toString(36).slice(2,6);
+  const {error:signUpErr}=await sb.auth.signUp({email,password:pw});
+  if(signUpErr&&!signUpErr.message.includes('already registered')) return toast('계정 생성 실패: '+signUpErr.message,'error');
+  const {error}=await sb.from('profiles').insert({email,name,role:'user',folder_name:folder,region,bank_name,bank_account});
+  if(error) return toast('추가 실패: '+error.message,'error');
   toast(`${name} 추가 완료!`);
   closeModal();
-  document.getElementById('new-name').value = '';
-  document.getElementById('new-email').value = '';
-  document.getElementById('new-pw').value = '';
-  document.getElementById('new-bank').value = '';
-  document.getElementById('new-account').value = '';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-email').value='';
+  document.getElementById('new-pw').value='';
+  document.getElementById('new-bank').value='';
+  document.getElementById('new-account').value='';
   await loadAdminData();
 }
 
-(async () => {
-  const { data } = await sb.auth.getSession();
-  if (data.session) {
-    currentUser = data.session.user;
+(async()=>{
+  const {data}=await sb.auth.getSession();
+  if(data.session){
+    currentUser=data.session.user;
     await loadProfile();
-    if (currentProfile) { showApp(); return; }
+    if(currentProfile){showApp();return;}
   }
-  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-screen').style.display='flex';
 })();
 </script>
 </body>
